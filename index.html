@@ -125,7 +125,7 @@ async function loadFiles() {
 
         div.innerHTML = `
             <h3>${file.name}</h3>
-            <button onclick="downloadFile('${file.download_url}')">Download Latest</button>
+            <button onclick="downloadFile('${file.download_url}', '${file.name}')">Download Latest</button>
             <button onclick="toggleVersions('${file.name}', this)">Show Older Versions</button>
             <div class="versions" id="versions-${file.name}"></div>
         `;
@@ -135,9 +135,23 @@ async function loadFiles() {
 }
 
 // Download latest
-function downloadFile(url) {
-    window.open(url, "_blank");
+<script>
+async function downloadFile(url, filename) {
+    const response = await fetch(url);
+    const blob = await response.blob();
+
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+
+    a.remove();
+    window.URL.revokeObjectURL(blobUrl);
 }
+</script>
 
 // Toggle versions
 async function toggleVersions(filename, btn) {
