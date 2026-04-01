@@ -2,81 +2,94 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AKG Színházterem Showfile downloader</title>
+<title>AKG Színházterem Showfile Downloader</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #0f172a;
-        color: #e2e8f0;
-        margin: 0;
-        padding: 20px;
-    }
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: #e2e8f0;
+    margin: 0;
+    padding: 40px 20px;
+}
 
-    h1 {
-        text-align: center;
-        margin-bottom: 20px;
-    }
+.container {
+    max-width: 800px;
+    margin: auto;
+    text-align: center;
+}
 
-    .container {
-        max-width: 900px;
-        margin: auto;
-    }
+h1 {
+    margin-bottom: 30px;
+    font-weight: 600;
+}
 
-    select {
-        padding: 10px;
-        border-radius: 8px;
-        border: none;
-        background: #1e293b;
-        color: white;
-        margin-bottom: 20px;
-        width: 100%;
-    }
+select {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #1e293b;
+    color: white;
+    margin-bottom: 25px;
+    width: 100%;
+    font-size: 15px;
+}
 
-    .file {
-        background: #1e293b;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-    }
+.file {
+    background: #1e293b;
+    padding: 18px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    text-align: left;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
 
-    .file h3 {
-        margin: 0 0 10px 0;
-    }
+.file h3 {
+    margin: 0 0 12px 0;
+    font-weight: 500;
+}
 
-    button {
-        padding: 8px 12px;
-        margin-right: 10px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        background: #3b82f6;
-        color: white;
-    }
+button {
+    padding: 8px 14px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #3b82f6;
+    color: white;
+    transition: 0.2s;
+}
 
-    button:hover {
-        background: #2563eb;
-    }
+button:hover {
+    background: #2563eb;
+}
 
-    .versions {
-        margin-top: 10px;
-        display: none;
-    }
+.versions {
+    margin-top: 12px;
+    display: none;
+    padding-left: 10px;
+    border-left: 2px solid #334155;
+}
 
-    .version-link {
-        display: block;
-        margin: 5px 0;
-        color: #93c5fd;
-        text-decoration: none;
-    }
+.version-link {
+    display: block;
+    margin: 6px 0;
+    color: #93c5fd;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.version-link:hover {
+    color: #60a5fa;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-    <h1>📦 SHW File Downloader</h1>
+    <h1>SHW File Downloader</h1>
 
     <select id="branchSelect"></select>
 
@@ -102,7 +115,7 @@ async function loadBranches() {
     loadFiles();
 }
 
-// Load files
+// Load files (ONLY .shw)
 async function loadFiles() {
     const branch = branchSelect.value;
     fileList.innerHTML = "Loading files...";
@@ -125,8 +138,12 @@ async function loadFiles() {
 
         div.innerHTML = `
             <h3>${file.name}</h3>
-            <button onclick="downloadFile('${file.download_url}')">Download Latest</button>
-            <button onclick="toggleVersions('${file.name}', this)">Show Older Versions</button>
+            <button onclick="downloadFile('${file.download_url}')">
+                Download Latest
+            </button>
+            <button onclick="toggleVersions('${file.name}', this)">
+                Show Older Versions
+            </button>
             <div class="versions" id="versions-${file.name}"></div>
         `;
 
@@ -134,7 +151,7 @@ async function loadFiles() {
     });
 }
 
-// Download latest
+// FORCE download (no tab opening)
 async function downloadFile(url) {
     const response = await fetch(url);
     const blob = await response.blob();
@@ -144,7 +161,6 @@ async function downloadFile(url) {
     const a = document.createElement("a");
     a.href = blobUrl;
 
-    // extract filename from URL
     const parts = url.split("/");
     a.download = parts[parts.length - 1];
 
@@ -155,8 +171,10 @@ async function downloadFile(url) {
     window.URL.revokeObjectURL(blobUrl);
 }
 
-// Toggle versions
+// Toggle versions (only .shw, styled links)
 async function toggleVersions(filename, btn) {
+    if (!filename.endsWith(".shw")) return;
+
     const container = document.getElementById(`versions-${filename}`);
 
     if (container.style.display === "block") {
@@ -170,7 +188,10 @@ async function toggleVersions(filename, btn) {
 
     const branch = branchSelect.value;
 
-    const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${filename}&sha=${branch}`);
+    const res = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${filename}&sha=${branch}`
+    );
+
     const commits = await res.json();
 
     container.innerHTML = commits.slice(0, 10).map(commit => {
@@ -181,10 +202,9 @@ async function toggleVersions(filename, btn) {
         const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/${filename}`;
 
         return `
-            <div class="version-link">
+            <a class="version-link" href="#" onclick="downloadFile('${url}'); return false;">
                 ${date} - ${msg}
-                <button onclick="downloadFile('${url}')">Download</button>
-            </div>
+            </a>
         `;
     }).join("");
 
