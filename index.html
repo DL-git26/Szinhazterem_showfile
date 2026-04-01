@@ -80,6 +80,10 @@ button:hover {
     cursor: pointer;
 }
 
+.version-link span {
+    opacity: 0.7;
+}
+
 .version-link:hover {
     color: #60a5fa;
 }
@@ -203,7 +207,7 @@ async function toggleVersions(filename, btn) {
 
         return `
             <a class="version-link" href="#" onclick="downloadFile('${url}'); return false;">
-                ${date} - ${msg}
+                ${date} — ${msg} — <span>${filename}</span>
             </a>
         `;
     }).join("");
