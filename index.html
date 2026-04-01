@@ -1,91 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AKG Színházterem Showfile downloader</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #0f172a;
-        color: #e2e8f0;
-        margin: 0;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
-    .container {
-        max-width: 900px;
-        margin: auto;
-    }
-
-    select {
-        padding: 10px;
-        border-radius: 8px;
-        border: none;
-        background: #1e293b;
-        color: white;
-        margin-bottom: 20px;
-        width: 100%;
-    }
-
-    .file {
-        background: #1e293b;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-    }
-
-    .file h3 {
-        margin: 0 0 10px 0;
-    }
-
-    button {
-        padding: 8px 12px;
-        margin-right: 10px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        background: #3b82f6;
-        color: white;
-    }
-
-    button:hover {
-        background: #2563eb;
-    }
-
-    .versions {
-        margin-top: 10px;
-        display: none;
-    }
-
-    .version-link {
-        display: block;
-        margin: 5px 0;
-        color: #93c5fd;
-        text-decoration: none;
-    }
-</style>
+    <meta charset="UTF-8">
+    <title>📦 SHW File Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .file {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .versions {
+            margin-top: 10px;
+            padding-left: 10px;
+            border-left: 2px solid #ddd;
+            display: none;
+        }
+        button {
+            margin-right: 5px;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
-    <h1>📦 SHW File Downloader</h1>
+<h2>📦 SHW File Downloader</h2>
 
-    <select id="branchSelect"></select>
+<select id="branchSelect"></select>
 
-    <div id="fileList">Loading files...</div>
-</div>
+<div id="fileList">Loading files...</div>
 
 <script>
-const OWNER = "DL-git26";
-const REPO = "AKG_Studio_Szinhazterem_Showfile";
+const OWNER = "your-username";   // 🔁 CHANGE THIS
+const REPO = "your-repo";       // 🔁 CHANGE THIS
 
 const branchSelect = document.getElementById("branchSelect");
 const fileList = document.getElementById("fileList");
@@ -95,8 +43,8 @@ async function loadBranches() {
     const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/branches`);
     const branches = await res.json();
 
-    branchSelect.innerHTML = branches.map(b =>
-        `<option value="${b.name}" ${b.name === "main" ? "selected" : ""}>${b.name}</option>`
+    branchSelect.innerHTML = branches.map(b => 
+        `<option value="${b.name}">${b.name}</option>`
     ).join("");
 
     loadFiles();
@@ -104,29 +52,29 @@ async function loadBranches() {
 
 // Load files
 async function loadFiles() {
-    const branch = branchSelect.value;
     fileList.innerHTML = "Loading files...";
+
+    const branch = branchSelect.value;
 
     const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/?ref=${branch}`);
     const files = await res.json();
 
-    const shwFiles = files.filter(f => f.name.endsWith(".shw"));
-
-    if (shwFiles.length === 0) {
-        fileList.innerHTML = "No .shw files found.";
-        return;
-    }
-
     fileList.innerHTML = "";
 
-    shwFiles.forEach(file => {
+    files.forEach(file => {
+        if (file.type !== "file") return;
+
         const div = document.createElement("div");
         div.className = "file";
 
         div.innerHTML = `
             <h3>${file.name}</h3>
-            <button onclick="downloadFile('${file.download_url}', '${file.name}')">Download Latest</button>
-            <button onclick="toggleVersions('${file.name}', this)">Show Older Versions</button>
+            <button onclick="downloadFile('${file.download_url}', '${file.name}')">
+                Download Latest
+            </button>
+            <button onclick="toggleVersions('${file.name}', this)">
+                Show Older Versions
+            </button>
             <div class="versions" id="versions-${file.name}"></div>
         `;
 
@@ -134,26 +82,32 @@ async function loadFiles() {
     });
 }
 
-// Download latest
-<script>
+// Download function
 async function downloadFile(url, filename) {
-    const response = await fetch(url);
-    const blob = await response.blob();
+    try {
+        const response = await fetch(url);
 
-    const blobUrl = window.URL.createObjectURL(blob);
+        if (!response.ok) throw new Error("Download failed");
 
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
 
-    a.remove();
-    window.URL.revokeObjectURL(blobUrl);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename || "download";
+
+        document.body.appendChild(a);
+        a.click();
+
+        a.remove();
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+        console.error(err);
+        alert("Failed to download file.");
+    }
 }
-</script>
 
-// Toggle versions
+// Toggle older versions
 async function toggleVersions(filename, btn) {
     const container = document.getElementById(`versions-${filename}`);
 
@@ -168,20 +122,25 @@ async function toggleVersions(filename, btn) {
 
     const branch = branchSelect.value;
 
-    const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${filename}&sha=${branch}`);
+    const res = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${filename}&sha=${branch}`
+    );
+
     const commits = await res.json();
 
     container.innerHTML = commits.slice(0, 10).map(commit => {
         const sha = commit.sha;
         const msg = commit.commit.message;
         const date = new Date(commit.commit.author.date).toLocaleString();
-
         const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/${filename}`;
 
         return `
-            <a class="version-link" href="${url}" target="_blank">
+            <div>
                 ${date} - ${msg}
-            </a>
+                <button onclick="downloadFile('${url}', '${filename}')">
+                    Download
+                </button>
+            </div>
         `;
     }).join("");
 
