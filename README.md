@@ -1,6 +1,6 @@
 # AKG_Studio_Szinhazterem_showfile
 Mindig a legujabb showfile és patch elérhető!
-Itt: https://dl-git26.github.io/AKG_Studio_Szinhazterem_showfile/
+Itt: https://dl-git26.github.io/Szinhazterem_showfile/
 Ha bármi nem működik, vagy rossz, főleg a patch-ben nyugodtan írjál ide, vagy mégjobb, ha kijavítod magad, és feltöltöd.
 Köszi, hogy együttműködsz és figyelembe veszed mások munkáját! 
 Legyen az AKG-Stúdió fénytechnika szakkörre mindig felkészülve és mindenkinek elérhető!
